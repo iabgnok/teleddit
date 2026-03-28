@@ -1,0 +1,89 @@
+
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .bg-knot-pattern {
+    background: linear-gradient(135deg, #1b1b1b 0%, #0f0f0f 100%);
+    background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+}
+
+/* 自定义绳网滚动条 */
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px; /* 极细 */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(37, 99, 235, 0.2); /* 蓝色半透明 */
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(37, 99, 235, 0.5); /* 悬停时变亮 */
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+  }
+
+  /* 将相同样式应用到整个页面的根滚动条（html / body） */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    background: rgba(37, 99, 235, 0.2);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
+    background: rgba(37, 99, 235, 0.5);
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+  }
+}
+
+/* 针对 Firefox */
+.custom-scrollbar,
+html,
+body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.2) transparent;
+}

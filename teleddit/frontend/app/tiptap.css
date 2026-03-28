@@ -1,0 +1,219 @@
+/* ============================================================
+   app/tiptap.css
+   Tiptap 编辑器 & PostModal 富文本阅读视图 共用样式
+   
+   用法：
+     编辑器：<div class="tiptap-editor-content">
+     阅读区：<div class="tiptap-render">（PostModal 左侧内容）
+   
+   在 app/layout.tsx 中 import "./tiptap.css"
+   ============================================================ */
+
+/* ── 基础排版（编辑 + 阅读共用）────────────────────────────── */
+.tiptap-editor-content,
+.tiptap-render {
+  color: rgb(226 232 240);
+  font-size: 15px;
+  line-height: 1.85;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.tiptap-editor-content p,
+.tiptap-render p {
+  margin: 0 0 0.85em;
+}
+.tiptap-editor-content p:last-child,
+.tiptap-render p:last-child {
+  margin-bottom: 0;
+}
+
+/* 标题 */
+.tiptap-editor-content h1, .tiptap-render h1 {
+  font-size: 1.65em; font-weight: 900; line-height: 1.2;
+  margin: 1.2em 0 0.5em; color: #ffffff; letter-spacing: -0.025em;
+}
+.tiptap-editor-content h2, .tiptap-render h2 {
+  font-size: 1.3em; font-weight: 800; line-height: 1.3;
+  margin: 1em 0 0.4em; color: #f1f5f9; letter-spacing: -0.015em;
+}
+.tiptap-editor-content h3, .tiptap-render h3 {
+  font-size: 1.1em; font-weight: 700; line-height: 1.35;
+  margin: 0.9em 0 0.35em; color: #e2e8f0;
+}
+
+/* 文字修饰 */
+.tiptap-editor-content strong, .tiptap-render strong { color: #ffffff; font-weight: 700; }
+.tiptap-editor-content em,     .tiptap-render em     { color: rgb(148 163 184); font-style: italic; }
+.tiptap-editor-content u,      .tiptap-render u      { text-underline-offset: 3px; }
+.tiptap-editor-content s,      .tiptap-render s      { opacity: 0.45; }
+
+/* 上标 / 下标 */
+.tiptap-editor-content sup, .tiptap-render sup {
+  font-size: 0.72em; vertical-align: super; line-height: 0;
+}
+.tiptap-editor-content sub, .tiptap-render sub {
+  font-size: 0.72em; vertical-align: sub; line-height: 0;
+}
+
+/* 高亮 */
+.tiptap-editor-content mark, .tiptap-render mark {
+  background-color: rgba(250, 204, 21, 0.2);
+  color: rgb(253 224 71);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+
+/* 引用块 */
+.tiptap-editor-content blockquote, .tiptap-render blockquote {
+  border-left: 3px solid rgba(96, 165, 250, 0.45);
+  padding: 0.3em 0 0.3em 1em;
+  margin: 0.85em 0;
+  color: rgb(148 163 184);
+  font-style: italic;
+  background: rgba(96, 165, 250, 0.04);
+  border-radius: 0 8px 8px 0;
+}
+
+/* 列表 */
+.tiptap-editor-content ul, .tiptap-render ul,
+.tiptap-editor-content ol, .tiptap-render ol {
+  padding-left: 1.65em;
+  margin: 0.5em 0;
+}
+.tiptap-editor-content li, .tiptap-render li { margin: 0.25em 0; }
+.tiptap-editor-content ul li::marker, .tiptap-render ul li::marker {
+  color: rgb(96 165 250 / 0.55);
+}
+.tiptap-editor-content ol li::marker, .tiptap-render ol li::marker {
+  color: rgb(96 165 250 / 0.55);
+  font-weight: 600;
+}
+
+/* 行内代码 */
+.tiptap-editor-content code, .tiptap-render code {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-size: 0.87em;
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  color: rgb(134 239 172);
+}
+
+/* 代码块 */
+.tiptap-editor-content pre, .tiptap-render pre {
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 1em 1.2em;
+  margin: 0.85em 0;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  font-size: 0.85em;
+  line-height: 1.7;
+}
+.tiptap-editor-content pre code, .tiptap-render pre code {
+  background: none; border: none; padding: 0;
+  color: rgb(226 232 240);
+}
+
+/* 分割线 */
+.tiptap-editor-content hr, .tiptap-render hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 1.2em 0;
+}
+
+/* 链接 */
+.tiptap-editor-content a, .tiptap-render a {
+  color: rgb(96 165 250);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(96, 165, 250, 0.35);
+  transition: color 0.15s, text-decoration-color 0.15s;
+}
+.tiptap-editor-content a:hover, .tiptap-render a:hover {
+  color: rgb(147 197 253);
+  text-decoration-color: rgba(147, 197, 253, 0.6);
+}
+
+/* 文字对齐 */
+.tiptap-editor-content [style*="text-align: center"], .tiptap-render [style*="text-align: center"] { text-align: center; }
+.tiptap-editor-content [style*="text-align: right"],  .tiptap-render [style*="text-align: right"]  { text-align: right; }
+.tiptap-editor-content [style*="text-align: left"],   .tiptap-render [style*="text-align: left"]   { text-align: left; }
+
+
+/* ── 图片 ──────────────────────────────────────────────────── */
+.tiptap-editor-content img,
+.tiptap-render img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin: 0.8em 0;
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+/* 编辑器内选中高亮 */
+.tiptap-editor-content img.ProseMirror-selectednode {
+  outline: 2px solid rgb(96 165 250);
+  outline-offset: 2px;
+}
+
+/* ── 嵌入视频 ──────────────────────────────────────────────── */
+.tiptap-editor-content .tiptap-video-wrapper,
+.tiptap-render .tiptap-video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0.85em 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.tiptap-editor-content .tiptap-video,
+.tiptap-render .tiptap-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+
+/* ── 编辑器专属（阅读视图不继承）──────────────────────────── */
+.tiptap-editor-content {
+  caret-color: rgb(96 165 250);
+  font-size: 14px;
+}
+
+/* Placeholder */
+.tiptap-editor-content.is-editor-empty::before {
+  content: attr(data-placeholder);
+  color: rgb(71 85 105);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* 选区 */
+.tiptap-editor-content ::selection {
+  background: rgba(59, 130, 246, 0.22);
+}
+
+/* 滚动条 */
+.tiptap-editor-content::-webkit-scrollbar { width: 4px; }
+.tiptap-editor-content::-webkit-scrollbar-track { background: transparent; }
+.tiptap-editor-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+
+/* ── 阅读视图专属 ──────────────────────────────────────────── */
+.tiptap-render {
+  font-size: 15px;
+}
+.tiptap-render > :first-child { margin-top: 0; }
+.tiptap-render > :last-child  { margin-bottom: 0; }
