@@ -69,11 +69,31 @@ async def vote_on_comment(
 
 @router.delete("/{comment_id}")
 async def remove_comment(
-    comment: Comment = Depends(require_comment_owner),
-    db: AsyncSession = Depends(get_db)
+    comment_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     """删除评论"""
-    # 同样逻辑，通过 dependency 验证所有权
+    from utils.auth import get_comment_or_404, _get_member_record
+    from fastapi import HTTPException
+    
+    comment = await get_comment_or_404(comment_id, db)
+    
+    # 获取帖子以得知所属社区
+    from utils.auth import get_post_or_404
+    post = await get_post_or_404(comment.post_id, db)
+    
+    can_delete = False
+    if comment.author_id == current_user.id or current_user.is_admin:
+        can_delete = True
+    else:
+        member = await _get_member_record(post.community_id, current_user.id, db)
+        if member and member.role in ["owner", "moderator"]:
+            can_delete = True
+            
+    if not can_delete:
+        raise HTTPException(status_code=403, detail="没有操作权限")
+
     return await delete_comment(
         db=db,
         comment_id=comment.id,

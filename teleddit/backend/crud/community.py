@@ -12,13 +12,29 @@ async def get_communities(db: AsyncSession):
     )
     return result.scalars().all()
 
-async def get_community(db: AsyncSession, community_id: str):
+async def get_community(db: AsyncSession, community_id: str, current_user_id: str = None):
     result = await db.execute(
         select(Community).where(Community.id == community_id)
     )
     community = result.scalar_one_or_none()
     if not community:
         raise HTTPException(status_code=404, detail="社区不存在")
+
+    my_role = None
+    if current_user_id:
+        member = await db.execute(
+            select(CommunityMember).where(
+                and_(CommunityMember.user_id == current_user_id, CommunityMember.community_id == community_id)
+            )
+        )
+        mbr = member.scalar_one_or_none()
+        if mbr:
+            my_role = mbr.role
+
+    # You can attach it to the instance dynamically, or just wrap it in a dict.
+    # The simplest is setattr or building a Pydantic dict
+    setattr(community, "my_role", my_role)
+    
     return community
 
 async def create_community(
@@ -189,8 +205,10 @@ async def ban_user_from_community(db: AsyncSession, community_id: str, user_id: 
 async def leave_community(db: AsyncSession, user_id: str, community_id: str):
     result = await db.execute(
         select(CommunityMember).where(
-            CommunityMember.user_id == user_id,
-            CommunityMember.community_id == community_id
+            and_(
+                CommunityMember.user_id == user_id,
+                CommunityMember.community_id == community_id
+            )
         )
     )
     membership = result.scalar_one_or_none()
@@ -206,7 +224,12 @@ async def leave_community(db: AsyncSession, user_id: str, community_id: str):
     await db.commit()
 
 async def update_member_preferences(db: AsyncSession, user_id: str, community_id: str, is_pinned: bool = None, is_muted: bool = None, is_archived: bool = None):
-    result = await db.execute(select(CommunityMember).where(CommunityMember.user_id == user_id, CommunityMember.community_id == community_id))
+    result = await db.execute(select(CommunityMember).where(
+        and_(
+            CommunityMember.user_id == user_id, 
+            CommunityMember.community_id == community_id
+        )
+    ))
     membership = result.scalar_one_or_none()
     
     if not membership:
@@ -218,3 +241,27 @@ async def update_member_preferences(db: AsyncSession, user_id: str, community_id
     
     await db.commit()
     return membership
+
+async def update_community(db: AsyncSession, community_id: str, update_data: dict, current_user_id: str = None):
+    community = await get_community(db, community_id, current_user_id)
+    
+    # 动态更新字段
+    for key, value in update_data.items():
+        # 如果是可选字段或者是普通字符串，并且值不是 None 才覆盖
+        if value is not None and hasattr(community, key):
+            setattr(community, key, value)
+            
+    await db.commit()
+    await db.refresh(community)
+    
+    # 因为 get_community 给 community 加上了 my_role，refresh 后可能会丢，我们要补上
+    if current_user_id:
+        member = await db.execute(
+            select(CommunityMember).where(
+                and_(CommunityMember.user_id == current_user_id, CommunityMember.community_id == community_id)
+            )
+        )
+        mbr = member.scalar_one_or_none()
+        setattr(community, "my_role", mbr.role if mbr else None)
+        
+    return community

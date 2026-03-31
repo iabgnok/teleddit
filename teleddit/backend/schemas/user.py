@@ -16,6 +16,7 @@ class LoginRequest(CamelModel):
 class UserUpdateRequest(CamelModel):
     username: Optional[str] = None
     password: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 class UserResponse(CamelModel):
     id: str

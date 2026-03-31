@@ -93,19 +93,22 @@ export default function ListFeed({ posts, onSelectPost, onVote, formatVotes, onS
             {/* 头部 */}
             <div className="px-5 pt-4 pb-2 flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-full bg-slate-800 border border-white/10 overflow-hidden shrink-0">
-                  <img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${post.author_id || post.author}`} alt="" />
+                <div 
+                  className="w-9 h-9 rounded-full bg-slate-800 border border-white/10 overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onSelectCommunity && post.community_id) {
+                      onSelectCommunity(post.community_id);
+                    }
+                  }}
+                >
+                  <img src={post.community_avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${post.community_id || post.community || post.author_id || post.author}`} alt="" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[13px] font-bold text-white">{post.author || "绳匠"}</span>
-                    {/* 标签显示在作者名旁 */}
-                    <TagList post={post} max={3} />
-                  </div>
-                  <p className="text-[11px] text-slate-500 font-mono mt-0.5 flex items-center gap-1">
-                    {post.community && (
+                    {post.community ? (
                       <span 
-                        className="hover:text-blue-400 hover:underline cursor-pointer"
+                        className="text-[13px] font-bold text-white hover:text-blue-400 hover:underline cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (onSelectCommunity && post.community_id) {
@@ -115,8 +118,19 @@ export default function ListFeed({ posts, onSelectPost, onVote, formatVotes, onS
                       >
                         r/{post.community}
                       </span>
+                    ) : (
+                      <span className="text-[13px] font-bold text-white">{post.author || "绳匠"}</span>
                     )}
-                    {post.community && <span>·</span>}
+                    {/* 标签显示在社区名旁 */}
+                    <TagList post={post} max={3} />
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-mono mt-0.5 flex flex-wrap items-center gap-1">
+                    {post.author && (
+                      <span className="truncate max-w-[120px]">
+                        u/{post.author}
+                      </span>
+                    )}
+                    {post.author && <span>·</span>}
                     <span>{relTime(post.created_at)}</span>
                   </p>
                 </div>

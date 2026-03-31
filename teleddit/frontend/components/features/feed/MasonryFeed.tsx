@@ -90,12 +90,34 @@ function Author({ post, onSelectCommunity }: { post: any, onSelectCommunity?: (c
   const tags = structuredTags(post);
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <div className="w-7 h-7 rounded-full bg-slate-800 border border-white/10 overflow-hidden shrink-0">
-        <img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${post.author_id || post.author}`} alt="" />
+      <div 
+        className="w-7 h-7 rounded-full bg-slate-800 border border-white/10 overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (onSelectCommunity && post.community_id) {
+            onSelectCommunity(post.community_id);
+          }
+        }}
+      >
+        <img src={post.community_avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${post.community_id || post.community || post.author_id || post.author}`} alt="" />
       </div>
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-[12px] font-bold text-white truncate">{post.author || "绳匠"}</span>
+          {post.community ? (
+            <span 
+              className="text-[12px] font-bold text-white hover:text-blue-400 cursor-pointer truncate"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onSelectCommunity && post.community_id) {
+                  onSelectCommunity(post.community_id);
+                }
+              }}
+            >
+              r/{post.community}
+            </span>
+          ) : (
+            <span className="text-[12px] font-bold text-white truncate">{post.author || "绳匠"}</span>
+          )}
           {/* ★ 只显示中文结构化标签，无英文类型 */}
           {tags.slice(0, 2).map((t: any) => (
             <TagBadge key={t.id ?? t.name} name={t.name}
@@ -103,17 +125,12 @@ function Author({ post, onSelectCommunity }: { post: any, onSelectCommunity?: (c
           ))}
         </div>
         <span className="text-[10px] text-slate-500 flex items-center gap-1">
-          {post.community && (
-            <span className="hover:text-blue-400 cursor-pointer" onClick={(e) => {
-              e.stopPropagation();
-              if (onSelectCommunity && post.community_id) {
-                onSelectCommunity(post.community_id);
-              }
-            }}>
-              r/{post.community}
+          {post.author && (
+            <span className="truncate max-w-[80px]">
+              u/{post.author}
             </span>
           )}
-          {post.community && <span>·</span>}
+          {post.author && <span>·</span>}
           <span>{relTime(post.created_at)}</span>
         </span>
       </div>

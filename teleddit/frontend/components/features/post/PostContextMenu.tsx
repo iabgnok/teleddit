@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowBigUp, ArrowBigDown, Bookmark, MessageCircle, Trash2 } from "lucide-react";
 
@@ -41,12 +41,24 @@ function Item({ icon, label, onClick, danger, active }: {
 export function PostContextMenu({ state, onClose, onVote, onFavorite, onComment, onDelete, currentUserId }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const { x, y, post } = state;
+  const [pos, setPos] = useState({ left: x, top: y, opacity: 0 });
 
-  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
-  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-  const menuW = 200;
-  const safeX = Math.min(x, vw - menuW - 8);
-  const safeY = Math.min(y, vh - 250);
+  useEffect(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    
+    let newX = x;
+    let newY = y;
+    
+    if (x + rect.width > vw - 8) newX = vw - rect.width - 8;
+    if (y + rect.height > vh - 8) {
+      newY = Math.max(8, y - rect.height);
+    }
+    
+    setPos({ left: newX, top: newY, opacity: 1 });
+  }, [x, y]);
 
   useEffect(() => {
     const down = (e: MouseEvent) => {
@@ -61,10 +73,10 @@ export function PostContextMenu({ state, onClose, onVote, onFavorite, onComment,
   const isOwner = currentUserId === post.author_id;
 
   const content = (
-    <div ref={ref} style={{ left: safeX, top: safeY, width: menuW, position: "fixed" }}
+    <div ref={ref} style={{ left: pos.left, top: pos.top, opacity: pos.opacity, width: 200, position: "fixed" }}
       className="z-[9999] bg-[#212121]/96 backdrop-blur-xl border border-white/10
         rounded-2xl shadow-2xl shadow-black/70 py-1.5 overflow-visible
-        animate-in fade-in zoom-in-95 duration-100 origin-top-left">
+        animate-in fade-in zoom-in-95 duration-100 origin-top-left transition-opacity">
       
       <Item 
         icon={<ArrowBigUp size={16} fill={post.user_voted === 1 ? "currentColor" : "none"} />} 

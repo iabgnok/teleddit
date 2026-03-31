@@ -23,8 +23,10 @@ import { DEFAULT_FOLDERS } from "@/lib/mock/communities";
 import { CommunityContextMenu, type ContextMenuState } from "@/components/features/community/CommunityContextMenu";
 import { FolderEditModal } from "@/components/features/community/FolderEditModal";
 import { CreateCommunityModal } from "@/components/features/community/CreateCommunityModal";
+import { CommunityManageModal } from "@/components/features/community/CommunityManageModal";
 import SearchBar from "@/components/layout/sidebar/SearchBar";
 import FolderTabs from "@/components/layout/sidebar/FolderTabs";
+import { communityApi } from "@/lib/api/community";
 
 // 引入拆分的子组件
 import { SectionGroup } from "./components/SectionGroup";
@@ -78,14 +80,18 @@ export function UnifiedSidebar({
   collapsed,
   onToggleCollapse,
 }: UnifiedSidebarProps) {
-  const { communities, loading } = useCommunities();
+  const { communities, loading, refetch: fetchCommunities, updateCommunityLocally } = useCommunities();
 
   // ── 文件夹状态（本地，后续可持久化到 Supabase）────────────
   const [folders, setFolders] = useState<FolderItem[]>(DEFAULT_FOLDERS);
   const [activeFolderId, setActiveFolderId] = useState("folder-all");
   const [editingFolder, setEditingFolder] = useState<FolderItem | null | "new">(undefined as any);
   const showFolderModal = editingFolder !== undefined;
-  const [showCreateCommunity, setShowCreateCommunity] = useState(false);  const [searchQuery, setSearchQuery] = useState('');  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [showCreateCommunity, setShowCreateCommunity] = useState(false);  
+  const [searchQuery, setSearchQuery] = useState('');  
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [manageCommunity, setManageCommunity] = useState<CommunityItem | null>(null);
+
   // ── 根据当前文件夹 + 搜索 过滤 communities ────────────────────
   const filteredSpaces = useMemo(() => {
     const folder = folders.find((f) => f.id === activeFolderId);
@@ -102,7 +108,14 @@ export function UnifiedSidebar({
         s.lastPreviewText?.toLowerCase().includes(q)
       );
     }
-    return base;
+
+    // 复制数组后再排序，防止污染原状态，置顶社区优先
+    return [...base].sort((a, b) => {
+      const aPinned = a.isPinned || false;
+      const bPinned = b.isPinned || false;
+      if (aPinned !== bPinned) return aPinned ? -1 : 1;
+      return 0;
+    });
   }, [communities, activeFolderId, searchQuery, folders]);
 
   // ── 按类型分组 ────────────────────────────────────────────
@@ -141,6 +154,57 @@ export function UnifiedSidebar({
       f.id === folderId ? { ...f, communityIds: f.communityIds.filter((x) => x !== communityId) } : f
     ));
   }, []);
+
+  // ── 右键菜单 API 调用 ──────────────────────────────────────────
+  const handlePin = async (community: CommunityItem) => {
+    try {
+      const targetState = !community.isPinned;
+      if (updateCommunityLocally) updateCommunityLocally(community.id, { isPinned: targetState });
+      await communityApi.updatePreferences(community.id, { is_pinned: targetState });
+      if (fetchCommunities) fetchCommunities();
+    } catch (err: any) {
+      if (updateCommunityLocally) updateCommunityLocally(community.id, { isPinned: community.isPinned }); // revert
+      alert("操作失败: " + err.message);
+    }
+  };
+
+  const handleMute = async (community: CommunityItem) => {
+    try {
+      const targetState = !community.isMuted;
+      if (updateCommunityLocally) updateCommunityLocally(community.id, { isMuted: targetState });
+      await communityApi.updatePreferences(community.id, { is_muted: targetState });
+      if (fetchCommunities) fetchCommunities();
+    } catch (err: any) {
+      if (updateCommunityLocally) updateCommunityLocally(community.id, { isMuted: community.isMuted });
+      alert("操作失败: " + err.message);
+    }
+  };
+
+  const handleArchive = async (community: CommunityItem) => {
+    try {
+      const targetState = !community.isArchived;
+      if (updateCommunityLocally) updateCommunityLocally(community.id, { isArchived: targetState });
+      await communityApi.updatePreferences(community.id, { is_archived: targetState });
+      if (fetchCommunities) fetchCommunities();
+    } catch (err: any) {
+      if (updateCommunityLocally) updateCommunityLocally(community.id, { isArchived: community.isArchived });
+      alert("操作失败: " + err.message);
+    }
+  };
+
+  const handleLeave = async (community: CommunityItem) => {
+    if (!confirm(`确定要退出社区 "${community.name}" 吗？`)) return;
+    try {
+      await communityApi.leaveCommunity(community.id);
+      if (fetchCommunities) fetchCommunities();
+      if (selectedCommunityId === community.id) {
+         window.location.hash = ""; // Clear hash or redirect to square if selected
+         onSelectSpace(null);
+      }
+    } catch (err: any) {
+      alert("退出失败: " + err.message);
+    }
+  };
 
   // ── 右键菜单 ──────────────────────────────────────────────
   const handleContextMenu = useCallback((e: React.MouseEvent, community: CommunityItem) => {
@@ -311,11 +375,13 @@ export function UnifiedSidebar({
           folders={folders}
           onClose={() => setContextMenu(null)}
           onMarkRead={() => {}}
-          onPin={() => {}}
-          onMute={() => {}}
-          onArchive={() => {}}
+          onPin={handlePin}
+          onMute={handleMute}
+          onArchive={handleArchive}
+          onLeave={handleLeave}
           onAddToFolder={addSpaceToFolder}
           onRemoveFromFolder={removeSpaceFromFolder}
+          onManage={(community) => setManageCommunity(community)}
           onCreateFolderWith={(community) => {
             setEditingFolder(null);
             // TODO: 预填 communityIds = [community.id]
@@ -339,6 +405,18 @@ export function UnifiedSidebar({
         <CreateCommunityModal
           onClose={() => setShowCreateCommunity(false)}
           onSuccess={() => {
+            window.location.reload();
+          }}
+        />
+      )}
+
+      {/* 社区管理弹窗 */}
+      {manageCommunity && (
+        <CommunityManageModal
+          community={manageCommunity}
+          onClose={() => setManageCommunity(null)}
+          onUpdated={() => {
+            // refresh data if needed, or window reload
             window.location.reload();
           }}
         />

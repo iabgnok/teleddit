@@ -13,6 +13,15 @@ class CreateCommunityRequest(CamelModel):
     comment_permission: str = "everyone"
     join_mode: str = "open"
 
+class UpdateCommunitySettingsRequest(CamelModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    avatar_url: Optional[str] = None
+    visibility: Optional[str] = None
+    post_permission: Optional[str] = None
+    comment_permission: Optional[str] = None
+    join_mode: Optional[str] = None
+
 class CommunityResponse(CamelModel):
     id: str
     name: str
@@ -28,6 +37,7 @@ class CommunityResponse(CamelModel):
     last_activity_at: datetime
     created_at: datetime
     unread_count: int = 0
+    my_role: Optional[str] = None  # None if not joined, else "member", "admin", "owner"
 
 class JoinRequestCreate(CamelModel):
     message: Optional[str] = None
@@ -59,3 +69,8 @@ class UserCommunityResponse(CamelModel):
     is_archived: bool
     joined_at: datetime
     unread_count: int = 0
+    # Add rules:
+    visibility: str = "public"
+    post_permission: str = "everyone"
+    comment_permission: str = "everyone"
+    join_mode: str = "open"

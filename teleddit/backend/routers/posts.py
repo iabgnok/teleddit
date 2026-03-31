@@ -67,13 +67,29 @@ async def get_single_post(
 
 @router.delete('/{post_id}')
 async def delete_single_post(
-    post: Post = Depends(require_post_owner),
-    db: AsyncSession = Depends(get_db)
+    post_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    # require_post_owner 已经做了权限检查
-    # 我们只需要调用 crud 删除逻辑即可
-    # 为了复用 crud 里的逻辑，我们可以 pass user_id (虽然 redundant) 或者重构 crud
-    # 这里直接调用 crud.delete_post，注意 crud 里可能还会查一次，稍显多余但安全
+    from utils.auth import get_post_or_404, _get_member_record
+    from fastapi import HTTPException
+    
+    post = await get_post_or_404(post_id, db)
+    
+    # 鉴权逻辑：1. 是作者 2. 是全局管理员 3. 是社区管理员/所有者
+    can_delete = False
+    if post.author_id == current_user.id or current_user.is_admin:
+        can_delete = True
+    else:
+        member = await _get_member_record(post.community_id, current_user.id, db)
+        if member and member.role in ["owner", "moderator"]:
+            can_delete = True
+            
+    if not can_delete:
+        raise HTTPException(status_code=403, detail="没有操作权限")
+
+    # 复用 crud 删除逻辑
+    from crud.post import delete_post
     await delete_post(db, post.id, post.author_id)
     return {"message": "帖子已删除"}
 

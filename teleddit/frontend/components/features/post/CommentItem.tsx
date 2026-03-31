@@ -8,6 +8,7 @@ const CommentItem = ({
   comment,
   currentUser,
   postAuthorId,
+  communityRole,
   onReply,
   onDelete,
   onVote
@@ -15,6 +16,7 @@ const CommentItem = ({
   comment: any;
   currentUser: any;
   postAuthorId: string;
+  communityRole?: string;
   onReply: (c: any) => void;
   onDelete: (id: string) => void;
   onVote: (id: string, type: number) => void;
@@ -69,6 +71,16 @@ const CommentItem = ({
               {(currentUser?.id === authorId || currentUser?.id === postAuthorId) && (
                 <button onClick={() => onDelete(comment.id)} className="text-red-500/40 hover:text-red-500 text-[10px] font-black uppercase tracking-tighter">Delete</button>
               )}
+              {/* 版主/创建者 强制删除权限 */}
+              {currentUser?.id !== authorId && (communityRole === "owner" || communityRole === "moderator") && (
+                <button 
+                  onClick={() => onDelete(comment.id)} 
+                  className="flex items-center gap-1 text-red-500/60 hover:text-red-400 text-[10px] font-black uppercase tracking-tighter"
+                  title="版主强制删除"
+                >
+                  <ShieldAlert size={10} /> Mod Remove
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -112,6 +124,7 @@ const CommentItem = ({
                 comment={child}
                 currentUser={currentUser}
                 postAuthorId={postAuthorId}
+                communityRole={communityRole}
                 onReply={onReply}
                 onDelete={onDelete}
                 onVote={onVote}

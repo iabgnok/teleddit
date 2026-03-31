@@ -25,7 +25,7 @@ async def me(current_user=Depends(get_current_user)):
 
 @router.patch("/me", response_model=UserResponse)
 async def update_me(body: UserUpdateRequest, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
-    return await update_user_crud(db, current_user.id, body.username, body.password)
+    return await update_user_crud(db, current_user.id, body.username, body.password, body.avatar_url)
 
 @router.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):

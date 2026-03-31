@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import {
   ExternalLink, Eye, FolderPlus, CheckCheck,
   Pin, PinOff, BellOff, Bell, Archive, Flag, LogOut,
-  ChevronRight, Check,
+  ChevronRight, Check, ShieldAlert
 } from "lucide-react";
 import type { CommunityItem } from "@/types/community";
 import type { FolderItem } from "@/types/folder";
@@ -26,6 +26,8 @@ interface Props {
   onAddToFolder: (communityId: string, folderId: string) => void;
   onRemoveFromFolder: (communityId: string, folderId: string) => void;
   onCreateFolderWith: (community: CommunityItem) => void;
+  onManage?: (community: CommunityItem) => void;
+  onLeave?: (community: CommunityItem) => void;
 }
 
 function Divider() {
@@ -48,16 +50,30 @@ function Item({ icon, label, onClick, danger, right }: {
 }
 
 export function CommunityContextMenu({ state, folders, onClose, onMarkRead, onPin, onMute,
-  onArchive, onAddToFolder, onRemoveFromFolder, onCreateFolderWith }: Props) {
+  onArchive, onAddToFolder, onRemoveFromFolder, onCreateFolderWith, onManage, onLeave }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [showFolderSub, setShowFolderSub] = useState(false);
   const { x, y, community } = state;
+  const [pos, setPos] = useState({ left: x, top: y, opacity: 0 }); // Initial opacity 0 to prevent flicker
 
-  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
-  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-  const menuW = 228;
-  const safeX = Math.min(x, vw - menuW - 8);
-  const safeY = Math.min(y, vh - 400);
+  useEffect(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    
+    let newX = x;
+    let newY = y;
+    
+    if (x + rect.width > vw - 8) newX = vw - rect.width - 8;
+    if (y + rect.height > vh - 8) {
+      // If it goes off the bottom, try to position it above the cursor
+      // but ensure it doesn't go above the top of the viewport
+      newY = Math.max(8, y - rect.height);
+    }
+    
+    setPos({ left: newX, top: newY, opacity: 1 });
+  }, [x, y]);
 
   useEffect(() => {
     const down = (e: MouseEvent) => {
@@ -76,10 +92,10 @@ export function CommunityContextMenu({ state, folders, onClose, onMarkRead, onPi
   const isSpecialSpace = community.id === "__saved__" || community.id === "__my_posts__" || community.id === "square";
 
   const content = (
-    <div ref={ref} style={{ left: safeX, top: safeY, width: menuW, position: "fixed" }}
+    <div ref={ref} style={{ left: pos.left, top: pos.top, opacity: pos.opacity, width: 228, position: "fixed" }}
       className="z-[9999] bg-[#212121]/96 backdrop-blur-xl border border-white/10
         rounded-2xl shadow-2xl shadow-black/70 py-1.5 overflow-visible
-        animate-in fade-in zoom-in-95 duration-100 origin-top-left">
+        animate-in fade-in zoom-in-95 duration-100 origin-top-left transition-opacity">
 
       <Item icon={<ExternalLink size={15} />} label="在新标签页打开" onClick={onClose} />
       <Item icon={<Eye size={15} />} label="快速预览" onClick={onClose} />
@@ -138,8 +154,19 @@ export function CommunityContextMenu({ state, folders, onClose, onMarkRead, onPi
           <Item icon={<Archive size={15} />} label="归档"
             onClick={() => { onArchive(community); onClose(); }} />
           <Item icon={<Flag size={15} />} label="举报" onClick={onClose} />
+          
+          {(community.myRole === 'owner' || community.myRole === 'moderator') && (
+            <>
+              <Divider />
+              <Item icon={<ShieldAlert size={15} />} label="管理社区..." onClick={() => {
+                onManage?.(community);
+                onClose();
+              }} />
+            </>
+          )}
+
           <Divider />
-          <Item icon={<LogOut size={15} />} label={leaveLabel} onClick={onClose} danger />
+          <Item icon={<LogOut size={15} />} label={leaveLabel} onClick={() => { onLeave?.(community); onClose(); }} danger />
         </>
       )}
     </div>

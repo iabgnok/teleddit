@@ -98,7 +98,11 @@ async def get_user_communities_crud(db: AsyncSession, user_id: str):
             is_pinned=m.is_pinned,
             is_muted=m.is_muted,
             is_archived=m.is_archived,
-            joined_at=m.joined_at
+            joined_at=m.joined_at,
+            visibility=m.community.visibility,
+            post_permission=m.community.post_permission,
+            comment_permission=m.community.comment_permission,
+            join_mode=m.community.join_mode
         )
         for m in membership
     ]
@@ -172,7 +176,7 @@ async def get_user_posts_crud(
 
     return output
 
-async def update_user_crud(db: AsyncSession, user_id: str, new_username: str = None, new_password: str = None):
+async def update_user_crud(db: AsyncSession, user_id: str, new_username: str = None, new_password: str = None, new_avatar_url: str = None):
     user = await get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="?????")
@@ -186,6 +190,9 @@ async def update_user_crud(db: AsyncSession, user_id: str, new_username: str = N
         
     if new_password:
         user.password_hash = hash_password(new_password)
+
+    if new_avatar_url is not None:
+        user.avatar_url = new_avatar_url
         
     await db.commit()
     await db.refresh(user)

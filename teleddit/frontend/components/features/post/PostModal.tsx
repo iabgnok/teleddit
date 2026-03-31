@@ -366,21 +366,23 @@ export default function PostModal({ post, onClose, onCommentCountChange }: PostM
               <span className="text-white font-black italic tracking-tighter text-sm uppercase">
                 Comments / 交互
               </span>
-              {currentUser?.id === post.author_id && (
+              {(currentUser?.id === post.author_id || post.community?.myRole === "owner" || post.community?.myRole === "moderator") && (
                 <button 
                   onClick={async () => {
-                    if (!confirm("确定要删除该帖子吗？删除后无法恢复。")) return;
+                    const isMod = currentUser?.id !== post.author_id;
+                    const msg = isMod ? "【版主操作】确定要强制删除该帖子吗？" : "确定要删除该帖子吗？删除后无法恢复。";
+                    if (!confirm(msg)) return;
                     try {
                       await fetchApi(`/posts/${post.id}`, { method: "DELETE" });
                       onClose();
-                      // 你可能还需要触发外层刷新列表
                       window.location.reload();
                     } catch (err: any) {
                       alert(`删除失败: ${err.message}`);
                     }
                   }}
-                  className="text-[11px] font-bold text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg transition-colors"
+                  className="text-[11px] font-bold text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
                 >
+                  {currentUser?.id !== post.author_id && <ShieldAlert size={12} />}
                   删除帖子
                 </button>
               )}
@@ -395,6 +397,7 @@ export default function PostModal({ post, onClose, onCommentCountChange }: PostM
                 comments.map((comment: any) => (
                   <CommentItem key={comment.id} comment={comment}
                     currentUser={currentUser} postAuthorId={post.author_id}
+                    communityRole={post.community?.myRole}
                     onReply={(c) => setReplyTo(c)}
                     onDelete={handleDeleteComment}
                     onVote={handleCommentVote} />

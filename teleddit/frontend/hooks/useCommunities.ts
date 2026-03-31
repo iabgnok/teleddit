@@ -45,6 +45,14 @@ export function useCommunities() {
         lastPreviewText: community.description || "新社区",
         unreadCount: community.unreadCount || 0,
         memberCount: community.memberCount,
+        myRole: community.role, // from backend UserCommunityResponse
+        visibility: community.visibility,
+        postPermission: community.postPermission,
+        commentPermission: community.commentPermission,
+        joinMode: community.joinMode,
+        isPinned: community.isPinned ?? community.is_pinned ?? false,
+        isMuted: community.isMuted ?? community.is_muted ?? false,
+        isArchived: community.isArchived ?? community.is_archived ?? false,
       }));
 
       const hasSquare = mappedSpaces.some(s => s.id === "square");
@@ -77,6 +85,12 @@ export function useCommunities() {
     );
   }, []);
 
+  const updateCommunityLocally = useCallback((communityId: string, updates: Partial<CommunityItem>) => {
+    setAllSpaces((prev) =>
+      prev.map((s) => (s.id === communityId ? { ...s, ...updates } : s))
+    );
+  }, []);
+
   const filterSpaces = useCallback(
     (filter: SidebarFilter): CommunityItem[] => {
       if (filter === "all") return allSpaces;
@@ -85,5 +99,5 @@ export function useCommunities() {
     [allSpaces]
   );
 
-  return { communities: allSpaces, loading, error, refetch: fetchCommunities, markAsRead, filterSpaces };
+  return { communities: allSpaces, loading, error, refetch: fetchCommunities, markAsRead, updateCommunityLocally, filterSpaces };
 }

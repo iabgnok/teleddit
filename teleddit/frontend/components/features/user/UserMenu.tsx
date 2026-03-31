@@ -1,10 +1,10 @@
 ﻿"use client";
 
-import { useState } from "react";
-import { User, Settings, LogOut, Shield, Moon, Award, PieChart, X, Loader2, ChevronRight } from "lucide-react";
+import { useState, useRef } from "react";
+import { User, Settings, LogOut, Shield, Moon, Award, PieChart, X, Loader2, ChevronRight, Upload, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchApi } from "@/lib/api/client";
+import { fetchApi, uploadFile } from "@/lib/api/client";
 
 export default function UserMenu({ userEmail }: { userEmail: string }) {        
   const [isOpen, setIsOpen] = useState(false);
@@ -13,7 +13,11 @@ export default function UserMenu({ userEmail }: { userEmail: string }) {
 
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newAvatarUrl, setNewAvatarUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleLogout = () => { logout(); setIsOpen(false); };
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +33,24 @@ export default function UserMenu({ userEmail }: { userEmail: string }) {
   const openSettings = () => {
     setNewUsername(user?.username || "");
     setNewPassword("");
+    setNewAvatarUrl(user?.avatar_url || "");
     setSuccess(false);
     setError(null);
     setIsSettingsOpen(!isSettingsOpen);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    setUploadingAvatar(true);
+    try {
+      const file = e.target.files[0];
+      const res = await uploadFile(file);
+      setNewAvatarUrl(res.url);
+    } catch (err: any) {
+      alert("上传失败: " + err.message);
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
   const handleUpdateSettings = async (e: React.FormEvent) => {
@@ -44,6 +63,7 @@ export default function UserMenu({ userEmail }: { userEmail: string }) {
       const body: any = {};
       if (newUsername.trim() && newUsername !== user?.username) body.username = newUsername.trim();
       if (newPassword.trim()) body.password = newPassword;
+      if (newAvatarUrl !== user?.avatar_url) body.avatar_url = newAvatarUrl;
 
       if (Object.keys(body).length === 0) {
         setError("Note: No changes made");
@@ -75,41 +95,69 @@ export default function UserMenu({ userEmail }: { userEmail: string }) {
       <div className="relative">
         <div
           onClick={() => setIsOpen(!isOpen)}
-          className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-xl shadow-lg shadow-blue-500/20 cursor-pointer hover:scale-105 transition-transform border border-white/10 flex items-center justify-center text-xs font-bold text-white shadow-inner"
+          className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-xl shadow-lg shadow-blue-500/20 cursor-pointer hover:scale-105 transition-transform border border-white/10 flex items-center justify-center text-xs font-bold text-white shadow-inner overflow-hidden"
         >
-          {displayUsername[0]?.toUpperCase() || "U"}
+          {user?.avatar_url ? (
+            <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            displayUsername[0]?.toUpperCase() || "U"
+          )}
         </div>
 
         {isOpen && (
           <>
             <div className="fixed inset-0 z-[9998]" onClick={() => { setIsOpen(false); setIsSettingsOpen(false); }} />
             <div className="absolute right-0 mt-3 w-64 bg-[#1b1b1b] border border-white/10 rounded-2xl shadow-2xl z-[9999] py-2 animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-4 py-3 border-b border-white/10 mb-2">
-                <p className="text-sm font-semibold text-white truncate">{displayUsername}</p>
-                <p className="text-xs text-slate-500 truncate mt-0.5">{userEmail}</p>
+              
+              {/* Header / Profile Link */}
+              <button 
+                onClick={() => { setIsOpen(false); /* 后续加跳转到主页的话加这 */ }}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-all text-left"
+              >
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-lg font-bold text-white overflow-hidden shrink-0 shadow-inner">
+                  {user?.avatar_url ? (
+                    <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    displayUsername[0]?.toUpperCase() || "U"
+                  )}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm font-bold text-white">查看个人主页</span>
+                  <span className="text-[11px] text-slate-500 truncate mt-0.5">u/{displayUsername}</span>
+                </div>
+              </button>
+
+              <div className="h-px bg-white/10 mx-3 my-1"></div>
+
+              {/* Menu Items */}
+              <div className="px-2 py-1">
+                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+                  <FileText size={18} className="text-slate-400" /> 草稿箱
+                </button>
               </div>
 
-              <div className="px-2 mb-2">
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all">
-                  <User size={16} className="text-slate-400" /> Profile
-                </button>
+              <div className="h-px bg-white/10 mx-3 my-1"></div>
+
+              <div className="px-2 py-1">
                 <button
                   onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                   className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <Settings size={16} className="text-slate-400" /> Settings
+                    <Settings size={18} className="text-slate-400" /> 设置
                   </div>
                   <ChevronRight size={14} className="text-slate-500" />
                 </button>
               </div>
 
-              <div className="px-2 pt-2 border-t border-white/10">
+              <div className="h-px bg-white/10 mx-3 my-1"></div>
+
+              <div className="px-2 py-1">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                 >
-                  <LogOut size={16} /> Log Out
+                  <LogOut size={18} className="text-slate-400" /> 退出登录
                 </button>
               </div>
 
@@ -124,6 +172,34 @@ export default function UserMenu({ userEmail }: { userEmail: string }) {
                   </div>
                   
                   <form onSubmit={handleUpdateSettings} className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase">Avatar (URL or Upload)</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newAvatarUrl}
+                          onChange={(e) => setNewAvatarUrl(e.target.value)}
+                          placeholder="Image URL"
+                          className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 outline-none focus:border-blue-500/50 transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingAvatar}
+                          className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-3 py-2 text-slate-300 transition-colors flex items-center justify-center disabled:opacity-50 shrink-0"
+                          title="Upload image"
+                        >
+                          {uploadingAvatar ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                        </button>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                        />
+                      </div>
+                    </div>
                     <div className="flex flex-col gap-1">
                       <label className="text-[11px] font-bold text-slate-400 uppercase">Username</label>
                       <input
