@@ -79,11 +79,11 @@ const CommentItem = ({
 
             <div className="absolute -right-2 -bottom-3 flex items-center opacity-0 group-hover/comment:opacity-100 transition-all duration-300 z-10">
               <div className="flex items-center gap-0.5 bg-[#1b1b1b] px-2 py-0.5 rounded-full border border-white/20 shadow-xl shadow-black/80">
-                <button onClick={() => onVote(comment.id, 1)} className={`p-0.5 ${userVoted === 1 ? 'text-blue-500' : 'text-slate-500 hover:text-blue-400'}`}>
+                <button onClick={() => onVote(comment.id, 1)} className={`p-0.5 ${userVoted === 1 ? 'text-orange-500' : 'text-slate-500 hover:text-orange-400'}`}>
                   <ArrowBigUp size={16} fill={userVoted === 1 ? "currentColor" : "none"} />
                 </button>
-                <span className="text-[10px] font-mono font-black min-w-[12px] text-center text-slate-400">{upvotes - downvotes}</span>
-                <button onClick={() => onVote(comment.id, -1)} className={`p-0.5 ${userVoted === -1 ? 'text-orange-500' : 'text-slate-500 hover:text-orange-400'}`}>
+                <span className="text-[10px] font-mono font-black min-w-[12px] text-center text-slate-400">{upvotes}</span>
+                <button onClick={() => onVote(comment.id, -1)} className={`p-0.5 ${userVoted === -1 ? 'text-blue-500' : 'text-slate-500 hover:text-blue-400'}`}>
                   <ArrowBigDown size={16} fill={userVoted === -1 ? "currentColor" : "none"} />
                 </button>
               </div>

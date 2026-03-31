@@ -226,8 +226,15 @@ async def delete_post(db: AsyncSession, post_id: str, user_id: str):
         else:
             community.posts_count = 0
             
-    await db.delete(post)
-    await db.commit()
+    try:
+        await db.delete(post)
+        await db.commit()
+    except IntegrityError as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="由于外键约束（如包含评论或互动），无法直接删除此帖子")
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 async def toggle_favorite(db: AsyncSession, user_id: str, post_id: str):

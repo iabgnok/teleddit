@@ -158,6 +158,11 @@ async def delete_comment(db: AsyncSession, comment_id: str, current_user_id: str
     if post:
         post.comment_count = max(0, post.comment_count - 1)
 
-    await db.delete(comment)
-    await db.commit()
+    try:
+        await db.delete(comment)
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="删除失败或由于父子级联报错")
+
     return {"message": "删除成功"}

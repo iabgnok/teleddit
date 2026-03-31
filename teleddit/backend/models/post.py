@@ -31,7 +31,7 @@ class Post(Base):
     author = relationship("User", back_populates="posts", foreign_keys=[author_id])
     community = relationship("Community", back_populates="posts")
     tags = relationship("Tag", secondary="post_tags", back_populates="posts")
-    votes = relationship("PostVote", back_populates="post")
+    votes = relationship("PostVote", back_populates="post", cascade="all, delete-orphan")
 
 class Tag(Base):
     __tablename__ = "tags"
