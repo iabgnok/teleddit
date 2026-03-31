@@ -73,7 +73,7 @@ export function CommunityContextMenu({ state, folders, onClose, onMarkRead, onPi
   const spaceFolderIds = nonSystemFolders.filter((f) => f.communityIds.includes(community.id)).map((f) => f.id);
 
   const leaveLabel = "退出社区";
-  const isSpecialSpace = community.id === "__saved__" || community.id === "square";
+  const isSpecialSpace = community.id === "__saved__" || community.id === "__my_posts__" || community.id === "square";
 
   const content = (
     <div ref={ref} style={{ left: safeX, top: safeY, width: menuW, position: "fixed" }}

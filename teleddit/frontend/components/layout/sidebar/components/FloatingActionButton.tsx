@@ -10,27 +10,32 @@ import { X, Pencil, Hash, FolderPen } from "lucide-react";
 
 interface FloatingActionButtonProps {
   onOpenFolderCreate: () => void;
+  onOpenCommunityCreate?: () => void;
 }
 
-export function FloatingActionButton({ onOpenFolderCreate }: FloatingActionButtonProps) {
+export function FloatingActionButton({ onOpenFolderCreate, onOpenCommunityCreate }: FloatingActionButtonProps) {
   const [open, setOpen] = useState(false);
 
   const actions = [
-    { 
-      icon: <Hash size={16} />,       
-      label: "新建社区",       
-      sub: "论坛社区", 
-      teleddit: true 
+    {
+      icon: <Hash size={16} />,
+      label: '新建社区',
+      sub: '论坛社区',
+      teleddit: true,
+      onClick: () => {
+        if (onOpenCommunityCreate) onOpenCommunityCreate();
+        setOpen(false);
+      }
     },
-    { 
-      icon: <FolderPen size={16} />,  
-      label: "新建分组",          
-      sub: "自定义分组",
-      onClick: () => { 
-        onOpenFolderCreate(); 
-        setOpen(false); 
-      } 
-    },
+    {
+      icon: <FolderPen size={16} />,
+      label: '新建分组',
+      sub: '自定义分组',
+      onClick: () => {
+        onOpenFolderCreate();
+        setOpen(false);
+      }
+    }
   ];
 
   return (

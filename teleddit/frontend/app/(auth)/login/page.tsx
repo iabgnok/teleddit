@@ -1,27 +1,31 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ShieldCheck, Mail, Lock } from "lucide-react";
+import { Loader2, ShieldCheck, Mail, Lock, User } from "lucide-react";
 import { fetchApi } from "@/lib/api/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { refreshUser } = useAuth();
 
-  // 处理登录
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isRegisterMode) {
+      return handleSignUp();
+    }
+    
     setLoading(true);
     setError(null);
 
     try {
-      // 改为发送 JSON 数据，路径改为 /auth/login，传递 email 字段
       const data = await fetchApi<{ access_token: string; token_type: string }>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
@@ -29,44 +33,42 @@ export default function LoginPage() {
       });
 
       localStorage.setItem("access_token", data.access_token);
-      await refreshUser(); // 更新全局 AuthContext 状态
+      await refreshUser();
       router.push("/");
     } catch (err: any) {
-      setError(err.message || "登录失败，请检查账号密码");
+      setError(err.message || "Login failed, please check credentials");
     } finally {
       setLoading(false);
     }
   };
 
-  // 处理注册
   const handleSignUp = async () => {
-    if (!email || !password) {
-      setError("请先填写邮箱和密码");
+    if (!email || !password || !username) {
+      setError("Please fill in email, username and password");
       return;
     }
     if (password.length < 6) {
-      setError("密码至少需要 6 位");
+      setError("Password must be at least 6 characters");
       return;
     }
     setLoading(true);
     setError(null);
     
     try {
-      const defaultUsername = email.split('@')[0] + Math.floor(Math.random() * 1000);
-      
       await fetchApi("/auth/register", {
         method: "POST",
         body: JSON.stringify({
           email,
-          username: defaultUsername,
+          username,
           password
         }),
         requireAuth: false,
       });
 
-      alert("注册成功！请直接登录。");
+      alert("Registration successful! Please login.");
+      setIsRegisterMode(false);
     } catch (err: any) {
-      setError(err.message || "注册失败");
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -84,9 +86,10 @@ export default function LoginPage() {
             <p className="text-slate-500 text-xs mt-2 font-mono uppercase tracking-widest italic">Authorized Access Only</p>
           </div>
 
-          <form onSubmit={handleSignIn} className="community-y-6">
-            <div className="community-y-2">
+          <form onSubmit={handleSignIn} className="space-y-6 flex flex-col gap-6">
+            <div className="space-y-2 flex flex-col gap-2">
               <label className="text-[10px] font-black text-slate-400 uppercase ml-4">Credentials</label>
+              
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
                 <input
@@ -98,6 +101,21 @@ export default function LoginPage() {
                   required
                 />
               </div>
+
+              {isRegisterMode && (
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full bg-black/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all text-white placeholder:text-slate-600"
+                    required={isRegisterMode}
+                  />
+                </div>
+              )}
+
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
                 <input
@@ -121,19 +139,22 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] flex items-center justify-center gap-2"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] flex items-center justify-center gap-2 uppercase"
               >
                 {loading ? <Loader2 className="animate-spin" /> : <ShieldCheck size={20} />}
-                LOG IN
+                {isRegisterMode ? "REGISTER" : "LOG IN"}
               </button>
 
               <button
                 type="button"
-                onClick={handleSignUp}
+                onClick={() => {
+                   setIsRegisterMode(!isRegisterMode);
+                   setError(null);
+                }}
                 disabled={loading}
                 className="w-full bg-transparent hover:bg-white/5 text-slate-400 font-bold py-3 rounded-2xl transition-all text-xs uppercase tracking-widest"
               >
-                Register Account
+                {isRegisterMode ? "Back to Login" : "Register Account"}
               </button>
             </div>
           </form>

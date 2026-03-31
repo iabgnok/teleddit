@@ -254,7 +254,7 @@ export default function Home() {
 
       {/* ── 右侧栏 ───────────────────────── */}
       <aside className="w-[272px] p-4 hidden xl:flex flex-col gap-4 bg-[#0a0a0a] shrink-0">
-        {selectedCommunity?.type === "community" ? (
+        {selectedCommunity?.type === "community" && !["__saved__", "__my_posts__", "square"].includes(selectedCommunity.id) ? (
           <CommunityInfoCard space={selectedCommunity} />
         ) : (
           <div className="rounded-2xl bg-[#1b1b1b] p-5 border border-white/5">

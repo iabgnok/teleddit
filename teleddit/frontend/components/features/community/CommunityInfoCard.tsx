@@ -1,7 +1,10 @@
+﻿"use client";
+
 import { useState, useEffect } from "react";
 import { Users } from "lucide-react";
 import type { CommunityItem } from "@/types/community";
 import { fetchApi } from "@/lib/api/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const COMMUNITY_META: Record<string, { emoji: string; desc: string; gradient: string }> = {
   "mock-community-001": { emoji: "⚡", desc: "Next.js 官方开发者交流社区，讨论最新特性、架构设计与踩坑经验。", gradient: "from-blue-500 to-cyan-400" },
@@ -13,26 +16,31 @@ const COMMUNITY_META: Record<string, { emoji: string; desc: string; gradient: st
 export default function CommunityInfoCard({ space }: { space: CommunityItem | null }) {
   const [isJoined, setIsJoined] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!space || space.type !== "community" || space.id === "__saved__" || space.id === "square") return;
-    
-    // Check if user is in community
+    if (!user) return; 
+
     const checkMembership = async () => {
       try {
         const myCommunities = await fetchApi<any[]>("/auth/me/communities");
         const joined = myCommunities.some((c: any) => c.id === space.id);
         setIsJoined(joined);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to check membership:", err);
       }
     };
     
     checkMembership();
-  }, [space?.id]);
+  }, [space?.id, user]);
 
   const toggleJoin = async () => {
     if (!space) return;
+    if (!user) {
+      alert("Please log in first to join a community");
+      return;
+    }
     setIsLoading(true);
     try {
       if (isJoined) {
@@ -42,8 +50,9 @@ export default function CommunityInfoCard({ space }: { space: CommunityItem | nu
         await fetchApi(`/communities/${space.id}/join`, { method: "POST" });
         setIsJoined(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to toggle join status:", err);
+      alert("Failed to toggle join status");
     } finally {
       setIsLoading(false);
     }

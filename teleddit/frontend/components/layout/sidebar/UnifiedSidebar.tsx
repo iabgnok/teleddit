@@ -22,6 +22,7 @@ import { DEFAULT_FOLDERS } from "@/lib/mock/communities";
 
 import { CommunityContextMenu, type ContextMenuState } from "@/components/features/community/CommunityContextMenu";
 import { FolderEditModal } from "@/components/features/community/FolderEditModal";
+import { CreateCommunityModal } from "@/components/features/community/CreateCommunityModal";
 import SearchBar from "@/components/layout/sidebar/SearchBar";
 import FolderTabs from "@/components/layout/sidebar/FolderTabs";
 
@@ -84,11 +85,7 @@ export function UnifiedSidebar({
   const [activeFolderId, setActiveFolderId] = useState("folder-all");
   const [editingFolder, setEditingFolder] = useState<FolderItem | null | "new">(undefined as any);
   const showFolderModal = editingFolder !== undefined;
-
-  // ── 搜索 / 右键菜单状态 ───────────────────────────────────
-  const [searchQuery, setSearchQuery] = useState("");
-  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-
+  const [showCreateCommunity, setShowCreateCommunity] = useState(false);  const [searchQuery, setSearchQuery] = useState('');  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   // ── 根据当前文件夹 + 搜索 过滤 communities ────────────────────
   const filteredSpaces = useMemo(() => {
     const folder = folders.find((f) => f.id === activeFolderId);
@@ -300,7 +297,10 @@ export function UnifiedSidebar({
           opacity-0 group-hover/sidebar:opacity-100
           transition-opacity duration-200 pointer-events-none
           group-hover/sidebar:pointer-events-auto">
-          <FloatingActionButton onOpenFolderCreate={() => setEditingFolder(null)} />
+          <FloatingActionButton 
+            onOpenFolderCreate={() => setEditingFolder(null)} 
+            onOpenCommunityCreate={() => setShowCreateCommunity(true)}
+          />
         </div>
       </aside>
 
@@ -331,6 +331,16 @@ export function UnifiedSidebar({
           onSave={saveFolder}
           onDelete={deleteFolder}
           onClose={() => setEditingFolder(undefined as any)}
+        />
+      )}
+
+      {/* 创建社区弹窗 */}
+      {showCreateCommunity && (
+        <CreateCommunityModal
+          onClose={() => setShowCreateCommunity(false)}
+          onSuccess={() => {
+            window.location.reload();
+          }}
         />
       )}
     </>

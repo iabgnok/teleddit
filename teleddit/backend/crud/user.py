@@ -13,13 +13,13 @@ from fastapi import HTTPException
 import uuid
 
 async def create_user(db: AsyncSession, email: str, username: str, password: str) -> User:
-    # 检查邮箱或用户名是否已存在
+    # ?????????????
     result = await db.execute(
         select(User).where((User.email == email) | (User.username == username))
     )
     existing_user = result.scalar_one_or_none()
     if existing_user:
-        raise HTTPException(status_code=400, detail="邮箱或用户名已被注册")
+        raise HTTPException(status_code=400, detail="??????????")
 
     new_user = User(
         id=str(uuid.uuid4()),
@@ -33,7 +33,7 @@ async def create_user(db: AsyncSession, email: str, username: str, password: str
     db.add(new_user)
     await db.flush()
 
-    # 默认加入广场社区
+    # ????????
     square_member = CommunityMember(
         user_id=new_user.id,
         community_id="square",
@@ -41,7 +41,7 @@ async def create_user(db: AsyncSession, email: str, username: str, password: str
     )
     db.add(square_member)
     
-    # 增加广场社区成员数
+    # ?????????
     square_community = await db.execute(select(Community).where(Community.id == "square"))
     square = square_community.scalar_one_or_none()
     if square:
@@ -56,10 +56,10 @@ async def login_user(db: AsyncSession, email: str, password: str):
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(password, user.password_hash):
-        raise HTTPException(status_code=401, detail="邮箱或密码错误")
+        raise HTTPException(status_code=401, detail="???????")
 
     if user.is_banned:
-        raise HTTPException(status_code=403, detail="账号已被封禁")
+        raise HTTPException(status_code=403, detail="??????")
 
     token = create_access_token(user.id)
     return {
@@ -74,8 +74,8 @@ async def get_user_by_id(db: AsyncSession, user_id: str):
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
-        raise HTTPException(status_code=404, detail="用户不存在")
-    return user # 直接返回 SQLAlchemy 对象，让 Pydantic 自动处理
+        raise HTTPException(status_code=404, detail="?????")
+    return user # ???? SQLAlchemy ???? Pydantic ????
 
 async def get_user_communities_crud(db: AsyncSession, user_id: str):
     
@@ -89,7 +89,6 @@ async def get_user_communities_crud(db: AsyncSession, user_id: str):
     return [
         UserCommunityResponse(
             id=m.community.id,
-            type="community",
             name=m.community.name,
             avatar_url=m.community.avatar_url,
             member_count=m.community.member_count,
@@ -99,8 +98,7 @@ async def get_user_communities_crud(db: AsyncSession, user_id: str):
             is_pinned=m.is_pinned,
             is_muted=m.is_muted,
             is_archived=m.is_archived,
-            joined_at=m.joined_at,
-            unread_count=0
+            joined_at=m.joined_at
         )
         for m in membership
     ]
@@ -129,18 +127,18 @@ async def get_user_posts_crud(
     if sort == "top":
         query = query.order_by(Post.upvotes.desc())
     elif sort == "hot":
-        # 简单的热度计算，实际项目中可能是按时间衰减公式
+        # ???????????????????????
         query = query.order_by((Post.upvotes - Post.downvotes).desc())
-    else: # 默认 new
+    else: # ?? new
         query = query.order_by(Post.created_at.desc())
 
-    # 4. 分页并执行
+    # 4. ?????
     query = query.limit(limit).offset(offset)
     result = await db.execute(query)
-    posts = result.scalars().all() # 这里拿到的是一个 Post 模型对象的数组
+    posts = result.scalars().all() # ???????? Post ???????
     output = []
     for post in posts:
-        # 寻找当前用户对这篇帖子的点赞状态
+        # ????????????????
         user_vote = 0
         if user_id:
             user_vote = next(
@@ -173,4 +171,24 @@ async def get_user_posts_crud(
         output.append(post_data)
 
     return output
+
+async def update_user_crud(db: AsyncSession, user_id: str, new_username: str = None, new_password: str = None):
+    user = await get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="?????")
+    
+    if new_username:
+        # Check if username is taken by someone else
+        result = await db.execute(select(User).where((User.username == new_username) & (User.id != user_id)))
+        if result.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="???????")
+        user.username = new_username
+        
+    if new_password:
+        user.password_hash = hash_password(new_password)
+        
+    await db.commit()
+    await db.refresh(user)
+    return user
+
 

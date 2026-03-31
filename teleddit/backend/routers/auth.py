@@ -1,8 +1,8 @@
 # routers/auth.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.user import RegisterRequest, LoginRequest, UserResponse
-from crud.user import create_user, login_user, get_user_by_id
+from schemas.user import RegisterRequest, LoginRequest, UserResponse, UserUpdateRequest
+from crud.user import create_user, login_user, get_user_by_id, update_user_crud
 from crud.user import get_user_communities_crud
 from config.database import get_db
 from utils.auth import get_current_user
@@ -22,6 +22,10 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 async def me(current_user=Depends(get_current_user)):
     return current_user
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(body: UserUpdateRequest, db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
+    return await update_user_crud(db, current_user.id, body.username, body.password)
 
 @router.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):

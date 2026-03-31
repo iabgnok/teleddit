@@ -5,7 +5,7 @@ from typing import List
 from config.database import get_db
 from utils.auth import get_current_user, require_comment_owner, get_optional_user
 from crud.comment import create_comment, get_comments, vote_comment, delete_comment
-from schemas.comment import CreateCommentRequest, CommentResponse
+from schemas.comment import CreateCommentRequest, CommentResponse, VoteCommentRequest
 from models.comment import Comment
 
 router = APIRouter(prefix="/posts/{post_id}/comments", tags=["评论"])
@@ -55,16 +55,16 @@ async def fetch_comments(
 async def vote_on_comment(
     post_id: str,
     comment_id: str,
-    vote_type: int,  # 1 for upvote, -1 for downvote, 0 to cancel (based on client needs or crud logic)
+    body: VoteCommentRequest,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    """给评论点赞/点踩"""
+    """缁欒瘎璁虹偣璧?鐐硅俯"""
     return await vote_comment(
         db=db,
         comment_id=comment_id,
         user_id=current_user.id,
-        vote_type=vote_type
+        vote_type=body.vote_type
     )
 
 @router.delete("/{comment_id}")

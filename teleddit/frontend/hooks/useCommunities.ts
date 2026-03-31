@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import type { CommunityItem, SidebarFilter } from "@/types/community";
@@ -6,6 +6,16 @@ import { MOCK_SPACES } from "@/lib/mock/communities";
 import { fetchApi } from "@/lib/api/client";
 
 const USE_MOCK = false;
+
+const DEFAULT_SQUARE: CommunityItem = {
+  id: "square",
+  type: "community",
+  name: "广场",
+  lastActivityAt: new Date().toISOString(),
+  lastPreviewText: "默认的公共交流区",
+  unreadCount: 0,
+  memberCount: 0,
+};
 
 export function useCommunities() {
   const [allSpaces, setAllSpaces] = useState<CommunityItem[]>([]);
@@ -24,43 +34,33 @@ export function useCommunities() {
     }
 
     try {
-      // 从我们自己的 Python FastAPI 获取 community 列表
-      // (将来还需要合并成包含 DMs/Channels 等等的话再做聚合)
       const data = await fetchApi<any[]>("/auth/me/communities", { requireAuth: true });
-      
+
       const mappedSpaces: CommunityItem[] = data.map((community) => ({
         id: community.id,
         type: "community",
         name: community.name,
         avatarUrl: community.avatarUrl,
-        lastActivityAt: community.lastActivityAt || new Date().toISOString(),
+        lastActivityAt: community.lastActivityAt || new Date().toISOString(),   
         lastPreviewText: community.description || "新社区",
         unreadCount: community.unreadCount || 0,
         memberCount: community.memberCount,
       }));
 
-      // 插入默认的广场社区
       const hasSquare = mappedSpaces.some(s => s.id === "square");
       if (!hasSquare) {
-        mappedSpaces.unshift({
-          id: "square",
-          type: "community",
-          name: "广场",
-          lastActivityAt: new Date().toISOString(),
-          lastPreviewText: "默认的公共交流区",
-          unreadCount: 0,
-          memberCount: 0,
-        });
+        mappedSpaces.unshift(DEFAULT_SQUARE);
       }
 
       setAllSpaces(mappedSpaces);
     } catch (err: any) {
       console.error("[useCommunities] 获取数据失败:", err);
-      // 未登录静默拦截
-      if (err?.message?.includes("401") || err?.message?.includes("Not authenticated")) {
-        setAllSpaces([]);
+      if (err?.message?.includes("401") || err?.message?.includes("Not authenticated") || err?.message?.includes("fetch")) {
+        setAllSpaces([DEFAULT_SQUARE]);
       } else {
         setError(err?.message ?? "未知错误");
+        // 保底展示广场
+        setAllSpaces([DEFAULT_SQUARE]);
       }
     } finally {
       setLoading(false);
@@ -71,10 +71,9 @@ export function useCommunities() {
     fetchCommunities();
   }, [fetchCommunities]);
 
-  // 临时：标记已读
   const markAsRead = useCallback((communityId: string) => {
     setAllSpaces((prev) =>
-      prev.map((s) => (s.id === communityId ? { ...s, unreadCount: 0 } : s))
+      prev.map((s) => (s.id === communityId ? { ...s, unreadCount: 0 } : s))    
     );
   }, []);
 

@@ -13,6 +13,10 @@ class LoginRequest(CamelModel):
     email: EmailStr
     password: str
 
+class UserUpdateRequest(CamelModel):
+    username: Optional[str] = None
+    password: Optional[str] = None
+
 class UserResponse(CamelModel):
     id: str
     email: str

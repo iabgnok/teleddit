@@ -8,6 +8,9 @@ class CreateCommentRequest(CamelModel):
     content: str
     parent_id: Optional[str] = None
 
+class VoteCommentRequest(CamelModel):
+    vote_type: int
+
 class CommentResponse(CamelModel):
     id: str
     content: str

@@ -1,5 +1,4 @@
-# main.py
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
@@ -21,7 +20,7 @@ async def lifespan(app: FastAPI):
     # 启动时创建数据库表
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        
+
     # 自动创建默认广场社区
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(models.community.Community).where(models.community.Community.id == "square"))
@@ -48,7 +47,7 @@ app.mount("/static", StaticFiles(directory=UPLOADS_DIR), name="static")
 # 允许前端跨域请求
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
