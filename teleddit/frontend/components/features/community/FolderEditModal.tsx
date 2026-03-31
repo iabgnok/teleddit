@@ -189,10 +189,9 @@ export function FolderEditModal({
                     ${isChecked ? "bg-blue-600/12" : "hover:bg-white/5"}`}
                 >
                   {/* 头像 */}
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center
-                    text-[11px] font-black text-white bg-gradient-to-br ${grad} shrink-0`}>
-                    {community.avatarUrl
-                      ? <img src={community.avatarUrl} className="w-full h-full object-cover rounded-[inherit]" />
+<div className={`w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-black text-white bg-gradient-to-br ${grad} shrink-0`}>
+                      {community.avatarUrl && community.avatarUrl !== "string"
+                        ? <img src={community.avatarUrl} className="w-full h-full object-cover rounded-[inherit]" alt={community.name} />
                       : initials
                     }
                   </div>

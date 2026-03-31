@@ -33,7 +33,7 @@ export default function UserMenu({ userEmail }: { userEmail: string }) {
   const openSettings = () => {
     setNewUsername(user?.username || "");
     setNewPassword("");
-    setNewAvatarUrl(user?.avatar_url || "");
+    setNewAvatarUrl(user?.avatarUrl || "");
     setSuccess(false);
     setError(null);
     setIsSettingsOpen(!isSettingsOpen);
@@ -63,7 +63,7 @@ export default function UserMenu({ userEmail }: { userEmail: string }) {
       const body: any = {};
       if (newUsername.trim() && newUsername !== user?.username) body.username = newUsername.trim();
       if (newPassword.trim()) body.password = newPassword;
-      if (newAvatarUrl !== user?.avatar_url) body.avatar_url = newAvatarUrl;
+      if (newAvatarUrl !== user?.avatarUrl) body.avatarUrl = newAvatarUrl;
 
       if (Object.keys(body).length === 0) {
         setError("Note: No changes made");
@@ -97,8 +97,8 @@ export default function UserMenu({ userEmail }: { userEmail: string }) {
           onClick={() => setIsOpen(!isOpen)}
           className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-xl shadow-lg shadow-blue-500/20 cursor-pointer hover:scale-105 transition-transform border border-white/10 flex items-center justify-center text-xs font-bold text-white shadow-inner overflow-hidden"
         >
-          {user?.avatar_url ? (
-            <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
           ) : (
             displayUsername[0]?.toUpperCase() || "U"
           )}
@@ -115,8 +115,8 @@ export default function UserMenu({ userEmail }: { userEmail: string }) {
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-all text-left"
               >
                 <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-lg font-bold text-white overflow-hidden shrink-0 shadow-inner">
-                  {user?.avatar_url ? (
-                    <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                  {user?.avatarUrl ? (
+                    <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                   ) : (
                     displayUsername[0]?.toUpperCase() || "U"
                   )}

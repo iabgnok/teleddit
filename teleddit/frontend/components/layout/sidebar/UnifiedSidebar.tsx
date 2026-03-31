@@ -18,6 +18,7 @@ import {
 import type { CommunityItem } from "@/types/community";
 import type { FolderItem } from "@/types/folder";
 import { useCommunities } from "@/hooks/useCommunities";
+import { useFolders } from "@/hooks/useFolders";
 import { DEFAULT_FOLDERS } from "@/lib/mock/communities";
 
 import { CommunityContextMenu, type ContextMenuState } from "@/components/features/community/CommunityContextMenu";
@@ -82,8 +83,8 @@ export function UnifiedSidebar({
 }: UnifiedSidebarProps) {
   const { communities, loading, refetch: fetchCommunities, updateCommunityLocally } = useCommunities();
 
-  // ── 文件夹状态（本地，后续可持久化到 Supabase）────────────
-  const [folders, setFolders] = useState<FolderItem[]>(DEFAULT_FOLDERS);
+  // ── 文件夹状态（改为从 API Hook 获取）───────────────────────
+  const { folders, saveFolder, deleteFolder, addSpaceToFolder, removeSpaceFromFolder } = useFolders();
   const [activeFolderId, setActiveFolderId] = useState("folder-all");
   const [editingFolder, setEditingFolder] = useState<FolderItem | null | "new">(undefined as any);
   const showFolderModal = editingFolder !== undefined;
@@ -123,37 +124,7 @@ export function UnifiedSidebar({
     communities: filteredSpaces.filter((s) => s.type === "community"),
   }), [filteredSpaces]);
 
-  // ── 文件夹操作 ────────────────────────────────────────────
-  const saveFolder = useCallback((f: FolderItem) => {
-    setFolders((prev) => {
-      const idx = prev.findIndex((x) => x.id === f.id);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = f;
-        return next;
-      }
-      return [...prev, { ...f, order: prev.length }];
-    });
-  }, []);
-
-  const deleteFolder = useCallback((id: string) => {
-    setFolders((prev) => prev.filter((f) => f.id !== id));
-    if (activeFolderId === id) setActiveFolderId("folder-all");
-  }, [activeFolderId]);
-
-  const addSpaceToFolder = useCallback((communityId: string, folderId: string) => {
-    setFolders((prev) => prev.map((f) =>
-      f.id === folderId && !f.communityIds.includes(communityId)
-        ? { ...f, communityIds: [...f.communityIds, communityId] }
-        : f
-    ));
-  }, []);
-
-  const removeSpaceFromFolder = useCallback((communityId: string, folderId: string) => {
-    setFolders((prev) => prev.map((f) =>
-      f.id === folderId ? { ...f, communityIds: f.communityIds.filter((x) => x !== communityId) } : f
-    ));
-  }, []);
+  // ── 文件夹操作 (已经被提取进 useFolders API HOOK) ────────────────────────────────────────────
 
   // ── 右键菜单 API 调用 ──────────────────────────────────────────
   const handlePin = async (community: CommunityItem) => {
