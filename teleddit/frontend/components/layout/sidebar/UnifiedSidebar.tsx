@@ -188,7 +188,7 @@ export function UnifiedSidebar({
   // ════════════════════════════════════════════════════════
   if (collapsed) {
     return (
-      <aside className="w-14 shrink-0 flex flex-col items-center bg-[#1b1b1b]
+      <aside className="w-14 shrink-0 flex flex-col items-center bg-[#1a1a1b]
         border-r border-white/10 py-3 gap-2.5 overflow-hidden">
         <button onClick={onToggleCollapse} title="展开侧栏"
           className="w-9 h-9 flex items-center justify-center rounded-xl
@@ -231,30 +231,21 @@ export function UnifiedSidebar({
   return (
     <>
       {/* 侧栏：用 relative + 不设 overflow-hidden，FAB 在内部定位 */}
-      <aside className="w-72 shrink-0 flex flex-col bg-[#1b1b1b] border-r border-white/10 relative group/sidebar">
+      <aside className="w-72 shrink-0 flex flex-col bg-[#1a1a1b] border-r border-white/10 relative group/sidebar">
 
-        {/* ── Header ── */}
-        <div className="h-14 px-3 flex items-center justify-between shrink-0 border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <button onClick={onToggleCollapse} title="折叠侧栏"
-              className="w-8 h-8 flex items-center justify-center rounded-lg
-                text-slate-400 hover:text-white hover:bg-white/8 transition-all">
-              <PanelLeftClose size={18} />
-            </button>
-            <h1 className="text-lg font-extrabold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500
-              bg-clip-text text-transparent tracking-tight">
-              Teleddit
-            </h1>
-          </div>
+        {/* ── 侧边栏顶部操作区 ── */}
+        <div className="h-12 px-3 flex items-center justify-between shrink-0 border-b border-white/5">
+          <button onClick={onToggleCollapse} title="折叠侧栏"
+            className="w-8 h-8 flex items-center justify-center rounded-lg
+              text-slate-400 hover:text-white hover:bg-white/8 transition-all">
+            <PanelLeftClose size={18} />
+          </button>
           <button title="设置"
             className="w-8 h-8 flex items-center justify-center rounded-lg
               text-slate-400 hover:text-white hover:bg-white/8 transition-all">
             <Settings size={16} />
           </button>
         </div>
-
-        {/* ── 搜索栏 ── */}
-        <SearchBar value={searchQuery} onChange={setSearchQuery} onClear={() => setSearchQuery("")} />
 
         {/* ── 文件夹 Tab 栏 ── */}
         <FolderTabs

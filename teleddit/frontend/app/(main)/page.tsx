@@ -165,105 +165,142 @@ export default function Home() {
   if (!isMounted) return null;
 
   return (
-    <div className="flex h-screen w-full bg-black text-slate-200 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen w-full bg-[#1a1a1b] text-slate-200 overflow-hidden font-sans">
 
-      {/* ── 左侧栏 ───────────────────────── */}
-      <UnifiedSidebar
-        selectedCommunityId={selectedCommunity?.id ?? null}
-        onSelectSpace={(space) => setSelectedCommunity(space)}
-        onCreatePost={() => setIsCreateModalOpen(true)}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
-      />
-
-      {/* ── 中间内容区 ───────────────────── */}
-      <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden bg-[#0d0d0d] border-r border-white/8">
-
-        {/* Header */}
-        <header className="h-14 shrink-0 bg-[#0d0d0d]/90 backdrop-blur-xl
-          border-b border-white/5 px-5 flex items-center justify-between z-50">
+      {/* ── 全局顶部导航栏 ── */}
+      <header className="h-14 shrink-0 bg-[#000000]
+        border-b border-[#343536] px-5 flex items-center justify-between z-50">
+        
+        {/* 左侧：可放置原本的标题，或者应用 Logo */}
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-extrabold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500
+              bg-clip-text text-transparent tracking-tight hidden md:block">
+            Teleddit
+          </h1>
           <SpaceTitle space={selectedCommunity} />
-          <div className="flex items-center gap-3">
-            <SortDropdown current={sort} onChange={setSort} />
-            <ViewToggle mode={viewMode} onChange={setViewMode} />
-            <Bell size={17} className="text-slate-400 hover:text-white cursor-pointer transition-colors" />
-            {authLoading ? (
-              <div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />
-            ) : user?.email ? (
-              <UserMenu userEmail={user.email} />
-            ) : (
-              <a
-                href="/login"
-                className="h-8 px-3 rounded-full bg-blue-600 hover:bg-blue-500
-                  text-white text-[13px] font-bold flex items-center transition-colors"
-              >
-                登录
-              </a>
-            )}
-          </div>
-        </header>
+        </div>
 
-        {/* 内容区 */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto py-6 px-4">
-            {viewMode === "list" ? (
-              <ListFeed
-                posts={sortedPosts}
-                onSelectPost={setSelectedPost}
-                onVote={handleVote}
-                formatVotes={(v) => {
-                  if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
-                  return String(v);
-                }}
-                onSelectCommunity={(communityId) => {
-                  const space = activePosts.find(p => p.community_id === communityId)?.community_id || communityId;
-                  setSelectedCommunity({ id: space, type: "community", name: activePosts.find(p => p.community_id === communityId)?.community || "未知" } as any);
-                }}
-                onContextMenu={handleContextMenu}
-              />
-            ) : (
-              <MasonryFeed
-                posts={sortedPosts}
-                onSelectPost={setSelectedPost}
-                onVote={handleVote}
-                formatVotes={(v) => {
-                  if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
-                  return String(v);
-                }}
-                onSelectCommunity={(communityId) => {
-                  const space = activePosts.find(p => p.community_id === communityId)?.community_id || communityId;
-                  setSelectedCommunity({ id: space, type: "community", name: activePosts.find(p => p.community_id === communityId)?.community || "未知" } as any);
-                }}
-                onContextMenu={handleContextMenu}
-              />
-            )}
+        {/* 中间：全局搜索框 */}
+        <div className="flex-1 max-w-xl mx-4">
+          <div className="relative group">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input 
+              type="text"
+              placeholder="搜索 Teleddit..."
+              className="w-full h-9 bg-white/5 hover:bg-white/10 focus:bg-white/10 
+                         border border-transparent focus:border-white/20 rounded-full
+                         pl-10 pr-4 text-[13px] text-white placeholder-slate-400
+                         outline-none transition-all focus:ring-1 focus:ring-white/10"
+            />
           </div>
         </div>
 
-        {/* FAB */}
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="fixed bottom-8 right-[300px] w-[52px] h-[52px]
-            bg-blue-600 hover:bg-blue-500 text-white rounded-full
-            flex items-center justify-center shadow-2xl shadow-blue-600/30
-            z-50 transition-all hover:scale-110 active:scale-95"
-        >
-          <Plus size={24} />
-        </button>
-      </main>
+        {/* 右侧：操作区 */}
+        <div className="flex items-center gap-3 shrink-0">
+          <Bell size={17} className="text-slate-400 hover:text-white cursor-pointer transition-colors" />
+          {authLoading ? (
+            <div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />
+          ) : user?.email ? (
+            <UserMenu userEmail={user.email} />
+          ) : (
+            <a
+              href="/login"
+              className="h-8 px-3 rounded-full bg-blue-600 hover:bg-blue-500
+                text-white text-[13px] font-bold flex items-center transition-colors"
+            >
+              登录
+            </a>
+          )}
+        </div>
+      </header>
 
-      {/* ── 右侧栏 ───────────────────────── */}
-      <aside className="w-[272px] p-4 hidden xl:flex flex-col gap-4 bg-[#0a0a0a] shrink-0">
-        {selectedCommunity?.type === "community" && !["__saved__", "__my_posts__", "square"].includes(selectedCommunity.id) ? (
-          <CommunityInfoCard space={selectedCommunity} />
-        ) : (
-          <div className="rounded-2xl bg-[#1b1b1b] p-5 border border-white/5">
-            <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider mb-3">发现</p>
-            <p className="text-xs text-slate-600 leading-relaxed">从左侧选择一个社区或群组开始探索</p>
+      {/* ── 下方主体区域 ── */}
+      <div className="flex flex-1 overflow-hidden">
+        
+        {/* ── 左侧栏 ── */}
+        <UnifiedSidebar
+          selectedCommunityId={selectedCommunity?.id ?? null}
+          onSelectSpace={(space) => setSelectedCommunity(space)}
+          onCreatePost={() => setIsCreateModalOpen(true)}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+        />
+
+        {/* ── 中间内容区 ── */}
+        <main className="flex-1 flex flex-col min-w-0 relative overflow-y-auto border-l border-white/5 bg-[#1a1a1b]">
+
+          <div className="max-w-[1200px] mx-auto w-full py-6 px-4 flex gap-6 items-start">
+            
+            {/* 帖子列表区 */}
+            <div className="flex-1 min-w-0">
+              
+              {/* 顶部控制栏 (排序与布局切换) */}
+              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-white/5">
+                <SortDropdown current={sort} onChange={setSort} />
+                <ViewToggle mode={viewMode} onChange={setViewMode} />
+              </div>
+
+              {viewMode === "list" ? (
+                <ListFeed
+                  posts={sortedPosts}
+                  onSelectPost={setSelectedPost}
+                  onVote={handleVote}
+                  formatVotes={(v) => {
+                    if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
+                    return String(v);
+                  }}
+                  onSelectCommunity={(communityId) => {
+                    const space = activePosts.find(p => p.community_id === communityId)?.community_id || communityId;
+                    setSelectedCommunity({ id: space, type: "community", name: activePosts.find(p => p.community_id === communityId)?.community || "未知" } as any);
+                  }}
+                  onContextMenu={handleContextMenu}
+                />
+              ) : (
+                <MasonryFeed
+                  posts={sortedPosts}
+                  onSelectPost={setSelectedPost}
+                  onVote={handleVote}
+                  formatVotes={(v) => {
+                    if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
+                    return String(v);
+                  }}
+                  onSelectCommunity={(communityId) => {
+                    const space = activePosts.find(p => p.community_id === communityId)?.community_id || communityId;
+                    setSelectedCommunity({ id: space, type: "community", name: activePosts.find(p => p.community_id === communityId)?.community || "未知" } as any);
+                  }}
+                  onContextMenu={handleContextMenu}
+                />
+              )}
+            </div>
+
+            {/* ── 右侧栏 (内部容器) ── */}
+            <aside className="w-[300px] hidden lg:flex flex-col gap-4 shrink-0 sticky top-6">
+              {selectedCommunity?.type === "community" && !["__saved__", "__my_posts__", "square"].includes(selectedCommunity.id) ? (
+                <CommunityInfoCard space={selectedCommunity} />
+              ) : (
+                <div className="rounded-2xl bg-[#1b1b1b] p-5 border border-white/5">
+                  <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider mb-3">发现</p>
+                  <p className="text-xs text-slate-600 leading-relaxed">从左侧选择一个社区或群组开始探索</p>
+                </div>
+              )}
+            </aside>
+
           </div>
-        )}
-      </aside>
-
+          
+          {/* FAB */}
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="fixed bottom-10 right-8 2xl:right-[calc(50vw-660px)] w-[56px] h-[56px]
+              bg-blue-600/80 backdrop-blur-md hover:bg-blue-500/90 text-white rounded-full
+              flex items-center justify-center shadow-lg shadow-blue-500/20
+              z-50 transition-all hover:scale-110 active:scale-95"
+          >
+            <Plus size={26} />
+          </button>
+        </main>
+      </div>
       {/* 弹窗 */}
       <CreatePostModal
         isOpen={isCreateModalOpen}
